@@ -1,0 +1,27 @@
+{% if user.is_authenticated %}
+{% with request.resolver_match.view_name as view_name %}
+  <div class="row my-3">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a
+          class="nav-link {% if view_name == 'notes:index' %}active{% endif %}"
+          href="{% url 'notes:index' %}"
+        >
+          Главная
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+           class="nav-link {% if view_name == 'notes:save_notes' %}
+                              active
+                           {% endif %}"
+           href="{% url 'notes:save_notes' %}"
+        >
+          Сохранненые заметки
+        </a>
+      </li>
+    </ul>
+  </div>
+{% endwith %}
+{% endif %}
+

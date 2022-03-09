@@ -94,8 +94,8 @@ class TestPost:
         assert type(image_field) == fields.files.ImageField, (
             'Свойство `image` модели `Post` должно быть `ImageField`'
         )
-        assert image_field.upload_to == 'posts/', (
-            "Свойство `image` модели `Post` должно быть с атрибутом `upload_to='posts/'`"
+        assert image_field.upload_to == 'notes/', (
+            "Свойство `image` модели `Post` должно быть с атрибутом `upload_to='notes/'`"
         )
 
     @pytest.mark.django_db(transaction=True)
@@ -231,7 +231,7 @@ class TestGroupView:
         group = post_with_group.group
         html = response.content.decode()
 
-        templates_list = ['group_list.html', 'posts/group_list.html']
+        templates_list = ['group_list.html', 'notes/group_list.html']
         html_template = select_template(templates_list).template.source
 
         assert search_refind(r'{%\s*for\s+.+in.*%}', html_template), (

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}
+  Заметка {{ post.text|truncatechars:30 }}
+{% endblock %}
+{% block content %}
+  {% load thumbnail %}
+  <div class="row">
+    <article class="col-12 col-md-9">
+        {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+            <img class="card-img my-2" src="{{ im.url }}">
+        {% endthumbnail %}
+        <p>
+            {{ post.text }}
+        </p>
+    </article>
+      <aside class="col-12 col-md-3">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                Дата публикации: {{ post.pub_date|date:"d E Y" }}
+            </li>
+        </ul>
+    </aside>
+  </div>
+{% endblock %}

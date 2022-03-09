@@ -43,5 +43,5 @@ def few_posts_with_group(mixer, user, group):
 
 @pytest.fixture
 def another_few_posts_with_group_with_follower(mixer, user, another_user, group):
-    mixer.blend('posts.Follow', user=user, author=another_user)
+    mixer.blend('notes.Follow', user=user, author=another_user)
     mixer.cycle(20).blend(Post, author=another_user, group=group)

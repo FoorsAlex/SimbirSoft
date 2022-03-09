@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}
+  Главная
+{% endblock %}
+{% block content %}
+{% if request.user.is_authenticated %}
+  Количество ваших заметок: {{ notes_count }}
+{% endif %}
+{% include 'includes/switcher.html' %}
+{% endblock %}
