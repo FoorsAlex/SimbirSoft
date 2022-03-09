@@ -59,11 +59,9 @@ class NotStaticUrlTest(TestCase):
             f'/posts/{cls.post.id}/edit/': http.HTTPStatus.FOUND,
             '/create/': http.HTTPStatus.FOUND,
             '/follow/': http.HTTPStatus.FOUND,
-            f'/profile/{cls.auth_user.username}/follow/':
-                http.HTTPStatus.FOUND,
-            f'/profile/{cls.auth_user.username}/unfollow/':
-                http.HTTPStatus.FOUND,
-            f'/posts/{cls.post.id}/comment/': http.HTTPStatus.FOUND
+            f'/profile/{cls.auth_user.username}/follow/': http.HTTPStatus.FOUND,
+            f'/profile/{cls.auth_user.username}/unfollow/': http.HTTPStatus.FOUND,
+            f'/posts/{cls.post.id}/comment': http.HTTPStatus.FOUND
 
         }
         cls.templates_authorized = {
@@ -72,6 +70,7 @@ class NotStaticUrlTest(TestCase):
             f'/group/{cls.group.slug}/': 'posts/group_list.html',
             f'/profile/{cls.auth_user.username}/': 'posts/profile.html',
             f'/posts/{cls.post.id}/': 'posts/post_detail.html',
+
 
         }
         cls.templates_guest = {
@@ -96,9 +95,7 @@ class NotStaticUrlTest(TestCase):
         for url, expected_value in self.urls_all_access.items():
             with self.subTest(url=url):
                 self.assertEqual(
-                    self.guest_client.get(url).status_code,
-                    expected_value,
-                    url)
+                    self.guest_client.get(url).status_code, expected_value, url)
 
     def test_url_limit_availability(self):
         """Проверка доступа к редактированнию
@@ -106,10 +103,8 @@ class NotStaticUrlTest(TestCase):
           авторизированного пользователя,
           а также доступа к странице создания"""
 
-        response_authorized_edit = self.authorized_client.get(
-            f'/posts/{self.post.pk}/edit/')
-        self.assertRedirects(response_authorized_edit,
-                             f'/posts/{self.post.pk}/',
+        response_authorized_edit = self.authorized_client.get('/posts/1/edit/')
+        self.assertRedirects(response_authorized_edit, '/posts/1/',
                              status_code=http.HTTPStatus.FOUND,
                              target_status_code=http.HTTPStatus.OK)
 

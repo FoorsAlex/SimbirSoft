@@ -4,7 +4,6 @@ import tempfile
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -106,8 +105,7 @@ class TestPages(TestCase):
         }
         for reverse_name, kwargs in pages_kwargs.items():
             with self.subTest(reverse_name=reverse_name):
-                if (reverse_name == 'posts:index'
-                        or reverse_name == 'posts:follow_index'):
+                if reverse_name == 'posts:index' or reverse_name == 'posts:follow_index':
                     response = self.client_authorized_user.get(
                         reverse(reverse_name))
                 else:
@@ -158,10 +156,9 @@ class TestPages(TestCase):
             reverse('posts:post_detail', kwargs={'post_id': self.post.pk})
         )
         )
-        context = response.context.get('post')
-        self.assertEqual(context.text, self.post.text)
-        self.assertEqual(context.group, self.group)
-        self.assertEqual(context.author, self.user_auth)
+        self.assertEqual(response.context.get('post').text, self.post.text)
+        self.assertEqual(response.context.get('post').group, self.group)
+        self.assertEqual(response.context.get('post').author, self.user_auth)
         self.assertCountEqual(response.context.get('comments'), self.comments)
 
 
@@ -180,14 +177,14 @@ class PaginatorViewsTest(TestCase):
             slug='test_slug',
             description='Описание'
         )
-        cls.count_post_obj = 13
+        count_post_obj = 13
         object_post = [
             Post(
                 text=f'Текст {i}',
                 author=cls.user_auth,
                 group=cls.group
             )
-            for i in range(0, cls.count_post_obj)
+            for i in range(0, count_post_obj)
         ]
         Post.objects.bulk_create(object_post)
 
@@ -198,7 +195,7 @@ class PaginatorViewsTest(TestCase):
     def test_first_page_contains_ten_records(self):
         """Проверка работы паджинатора 1-я страница"""
 
-        count_pages = settings.COUNT_PAGE
+        count_pages = 10
         reverse_list = {
             'posts:group_list': ('slug', self.group.slug),
             'posts:profile': ('username', self.user_auth.username),
@@ -207,8 +204,7 @@ class PaginatorViewsTest(TestCase):
         }
         for reverse_url, kwargs in reverse_list.items():
             with self.subTest(reverse_url=reverse_url):
-                if (reverse_url == 'posts:profile'
-                        or reverse_url == 'posts:group_list'):
+                if reverse_url == 'posts:profile' or reverse_url == 'posts:group_list':
                     response = self.client_authorized.get(
                         reverse(reverse_url, kwargs={kwargs[0]: kwargs[1]})
                     )
@@ -217,15 +213,12 @@ class PaginatorViewsTest(TestCase):
                         reverse(reverse_url)
                     )
                 self.assertEqual(
-                    len(response.context['page_obj']),
-                    count_pages,
-                    reverse_url
-                )
+                    len(response.context['page_obj']), count_pages, reverse_url)
 
     def test_second_page_contains_three_records(self):
         """Проверка работы паджинатора 2-я страница"""
 
-        count_pages = self.count_post_obj - settings.COUNT_PAGE
+        count_pages = 3
         reverse_list = {
             'posts:group_list': ('slug', self.group.slug),
             'posts:profile': ('username', self.user_auth.username),
@@ -234,11 +227,9 @@ class PaginatorViewsTest(TestCase):
         }
         for reverse_url, kwargs in reverse_list.items():
             with self.subTest(reverse_url=reverse_url):
-                if (reverse_url == 'posts:profile'
-                        or reverse_url == 'posts:group_list'):
+                if reverse_url == 'posts:profile' or reverse_url == 'posts:group_list':
                     response = self.client_authorized.get(
-                        reverse(reverse_url,
-                                kwargs={kwargs[0]: kwargs[1]}) + '?page=2'
+                        reverse(reverse_url, kwargs={kwargs[0]: kwargs[1]}) + '?page=2'
                     )
                 else:
                     response = self.client_authorized.get(
@@ -260,32 +251,27 @@ class TestCash(TestCase):
         )
         cls.reverse_index = reverse('posts:index')
 
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user_auth)
+
     def test_cash_index_page(self):
         """Тестирует работу кэширования на
         главной странице"""
 
-        author = User.objects.create(username='auth111')
-        client = Client()
-        client.force_login(author)
-        response = client.get(self.reverse_index)
-        content = response.content
-        Post.objects.create(
-            text='test',
-            author=author
-        )
-        self.assertEqual(content, client.get(self.reverse_index).content)
-        cache.clear()
-        self.assertNotEqual(content, client.get(self.reverse_index).content)
+        response_1 = self.authorized_client.get(self.reverse_index)
+        content_1 = response_1.content
+        self.post.delete()
+        response_2 = self.authorized_client.get(self.reverse_index)
+        content_2 = response_2.content
+        self.assertEqual(content_1, content_2)
 
 
 class TestFollow(TestCase):
-    """Тестирует систему подписок"""
 
     def setUp(self):
         self.authorized_user = User.objects.create(username='user')
         self.authorized_user_author = User.objects.create(username='author')
-        self.client_user = Client()
-        self.client_user.force_login(self.authorized_user)
         self.post = Post.objects.create(
             text='Текст',
             author=self.authorized_user_author
@@ -294,56 +280,28 @@ class TestFollow(TestCase):
             user=self.authorized_user,
             author=self.authorized_user_author
         )
+        self.authorized_client_auth = Client()
+        self.authorized_client = Client()
+        self.authorized_client_auth.force_login(self.authorized_user_author)
+        self.authorized_client.force_login(self.authorized_user)
 
-    def test_follow_index_not_follower(self):
-        user = User.objects.create(username='follower1')
-        author = User.objects.create(username='author2')
-        post = Post.objects.create(
-            text='test1',
-            author=author
-        )
-        client = Client()
-        client.force_login(user)
-        response = client.get(reverse(
+    def test_follow_index_auth(self):
+        response = self.authorized_client_auth.get(reverse(
             'posts:follow_index'))
         post_obj = response.context['page_obj']
-        self.assertNotIn(post, post_obj)
+        self.assertFalse(post_obj)
 
-    def test_follow_index_follower(self):
-        user = User.objects.create(username='follower1')
-        author = User.objects.create(username='author2')
-        post = Post.objects.create(
-            text='test1',
-            author=author
-        )
-        Follow.objects.create(
-            author=author,
-            user=user
-        )
-        client = Client()
-        client.force_login(user)
-        response = client.get(reverse(
-            'posts:follow_index'))
-        post_obj = response.context['page_obj']
-        self.assertIn(post, post_obj)
+    def test_follow_index_user(self):
+        response = self.authorized_client.get(reverse('posts:follow_index'))
+        post_obj = response.context['page_obj'][0]
+        self.assertTrue(post_obj)
 
     def test_unfollow(self):
         follow_count_1 = Follow.objects.count()
-        reverse_adr = reverse('posts:profile_unfollow',
-                              args={self.authorized_user_author.username})
-        self.client_user.get(reverse_adr)
+        follow = Follow.objects.get(
+            user=self.authorized_user,
+            author=self.authorized_user_author
+        )
+        follow.delete()
         follow_count_2 = Follow.objects.count()
         self.assertEqual(follow_count_2, follow_count_1 - 1)
-
-    def test_follow(self):
-        user = User.objects.create(username='follower')
-        author = User.objects.create(username='author1')
-        client_user = Client()
-        client_user.force_login(user)
-        follow_count = Follow.objects.count()
-        reverse_adr = reverse('posts:profile_follow',
-                              args={author.username})
-        client_user.get(reverse_adr)
-        follow = Follow.objects.filter(user=user, author=author).exists()
-        self.assertTrue(follow)
-        self.assertEqual(Follow.objects.count(), follow_count + 1)

@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CommentForm, PostForm
-from .models import Follow, Group, Post, User
+from .models import Comment, Follow, Group, Post, User
 
 
 def get_paginator_obj(request, query_list):
@@ -38,9 +38,11 @@ def group_posts(request, slug):
 
 def profile(request, username):
     user = request.user
-    author = get_object_or_404(User, username=username)
-    following = (user.is_authenticated
-                 and Follow.objects.filter(user=user, author=author).exists())
+    author = User.objects.get(username=username)
+    if user.is_authenticated:
+        following = User.objects.get(id=user.id).follower.filter(author=author)
+    else:
+        following = False
     post_list = Post.objects.filter(author__username=username)
     count_posts = post_list.count()
     page_obj = get_paginator_obj(request, post_list)
@@ -59,7 +61,7 @@ def post_detail(request, post_id):
     post_list = Post.objects.filter(author__username=post.author)
     count_posts = post_list.count()
     comment_form = CommentForm()
-    comment_list = post.comments.all()
+    comment_list = Comment.objects.filter(post__id=post_id)
     context = {
         'post': post,
         'count_posts': count_posts,
@@ -97,7 +99,7 @@ def post_edit(request, post_id):
         files=request.FILES or None
     )
     if form.is_valid():
-        form.save()
+        post.save()
         return redirect('posts:post_detail', post_id=post_id)
     context = {
         'form': form,
@@ -143,6 +145,6 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     if request.user != author:
-        follower = get_object_or_404(Follow, user=request.user, author=author)
+        follower = Follow.objects.get(user=request.user, author=author)
         follower.delete()
     return redirect('posts:profile', username=username)
