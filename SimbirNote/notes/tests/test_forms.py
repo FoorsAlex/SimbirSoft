@@ -45,7 +45,7 @@ class CreateFormTests(TestCase):
             group=cls.group,
             image=cls.uploaded
         )
-        cls.reverse_login = reverse('users:login')
+        cls.reverse_login = reverse('accounts:login')
         cls.reverse_create = reverse('notes:post_create')
         cls.reverse_add_comment = reverse(
             'notes:add_comment', kwargs={'post_id': cls.post.pk}

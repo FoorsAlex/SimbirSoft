@@ -1,7 +1,5 @@
-from django.contrib.auth import get_user_model
+from accounts.models import CustomUser
 from django.db import models
-
-User = get_user_model()
 
 
 class Note(models.Model):
@@ -11,7 +9,7 @@ class Note(models.Model):
     )
     pub_date = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='notes',
     )
