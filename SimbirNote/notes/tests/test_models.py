@@ -1,22 +1,15 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from ..models import Group, Note
+from accounts.models import CustomUser
+from ..models import Note
 
-User = get_user_model()
 
-
-class PostModelTest(TestCase):
+class NoteModelTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create(username='auth')
-        cls.group = Group.objects.create(
-            title='Тестовая группа',
-            slug='Тестовый слаг',
-            description='Тестовое описание'
-        )
-        cls.post = Note.objects.create(
+        cls.user = CustomUser.objects.create(username='auth@mail.ru')
+        cls.note = Note.objects.create(
             author=cls.user,
             text='Тестовая группа'
         )
@@ -24,11 +17,9 @@ class PostModelTest(TestCase):
     def test_models_have_correct_object_names(self):
         """Проверка работы __str__"""
 
-        post = PostModelTest.post
-        group = PostModelTest.group
+        note = NoteModelTest.note
         objects_names = {
-            'post': [post, post.text[:15]],
-            'group': [group, group.title]
+            'note': [note, note.text[:15]],
         }
         for objects, name in objects_names.items():
             with self.subTest(objects=objects):
@@ -37,14 +28,9 @@ class PostModelTest(TestCase):
     def test_labels_verbose_name(self):
         """verbose_name полей совпадает с ожидаемым."""
 
-        post = PostModelTest.post
-        group = PostModelTest.group
+        note = NoteModelTest.note
         objects_labels = {
-            'post_text': [post, 'text', 'Текст'],
-            'post_author': [post, 'author', 'Автор'],
-            'post_group': [post, 'group', 'Группа'],
-            'group_title': [group, 'title', 'Заголовок'],
-            'group_description': [group, 'description', 'Описание']
+            'note_text': [note, 'text', 'Текст'],
         }
         for label, verbose_name in objects_labels.items():
             with self.subTest(label=label):
@@ -55,30 +41,12 @@ class PostModelTest(TestCase):
     def test_labels_help_text(self):
         """help_text полей совпадает с ожидаемым."""
 
-        post = PostModelTest.post
-        group = PostModelTest.group
+        note = NoteModelTest.note
         objects_labels = {
-            'post_text': [post,
+            'note_text': [note,
                           'text',
                           'Напишите о чём хотели-бы рассказать'
                           ],
-            'post_author': [post,
-                            'author',
-                            'Выберите автора'
-                            ],
-            'post_group': [post,
-                           'group',
-                           'Выберите группу'
-                           ],
-            'group_title': [group,
-                            'title',
-                            'Укажите название группы'
-                            ],
-            'group_description': [
-                group,
-                'description',
-                'Опишите о чём ваше сообщество'
-            ]
         }
         for label, help_text in objects_labels.items():
             with self.subTest(label=label):

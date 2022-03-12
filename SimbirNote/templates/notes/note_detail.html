@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}
-  Заметка {{ post.text|truncatechars:30 }}
+  Заметка {{ note.text|truncatechars:30 }}
 {% endblock %}
 {% block content %}
   {% load thumbnail %}
@@ -10,13 +10,13 @@
             <img class="card-img my-2" src="{{ im.url }}">
         {% endthumbnail %}
         <p>
-            {{ post.text }}
+            {{ note.text }}
         </p>
     </article>
       <aside class="col-12 col-md-3">
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
-                Дата публикации: {{ post.pub_date|date:"d E Y" }}
+                Дата публикации: {{ note.pub_date }}
             </li>
         </ul>
     </aside>

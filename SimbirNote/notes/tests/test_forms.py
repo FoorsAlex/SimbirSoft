@@ -1,15 +1,13 @@
 import http
 import tempfile
 
-from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.models.fields.files import ImageFieldFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Comment, Group, Note
-
-User = get_user_model()
+from accounts.models import CustomUser
+from ..models import Note
 
 
 @override_settings(MEDIA_ROOT=tempfile.gettempdir())
@@ -17,7 +15,7 @@ class CreateFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user_auth = User.objects.create(username='author')
+        cls.user_auth = CustomUser.objects.create(username='author@mail.ru')
         cls.authorized_user = Client()
         cls.guest_user = Client()
         cls.authorized_user.force_login(cls.user_auth)
@@ -34,153 +32,67 @@ class CreateFormTests(TestCase):
             content=cls.small_gif,
             content_type='image/gif'
         )
-        cls.group = Group.objects.create(
-            title='Заголовок',
-            slug='slug',
-            description='Описание'
-        )
-        cls.post = Note.objects.create(
+        cls.note = Note.objects.create(
             text='Тестовый текст',
             author=cls.user_auth,
-            group=cls.group,
             image=cls.uploaded
         )
-        cls.reverse_login = reverse('accounts:login')
-        cls.reverse_create = reverse('notes:post_create')
-        cls.reverse_add_comment = reverse(
-            'notes:add_comment', kwargs={'post_id': cls.post.pk}
-        )
+        cls.reverse_login = reverse('account_login')
+        cls.reverse_create = reverse('notes:note_create')
 
     def test_create_authorized_user(self):
-        """Валидная форма создает запись в Post."""
+        """Валидная форма создает запись в Note."""
 
         tasks_count = Note.objects.count()
         form_data = {
             'text': 'Тестовый текст1',
             'author': self.user_auth,
-            'group': self.group.id,
-            'image': self.post.image
+            'image': self.note.image
         }
         response = self.authorized_user.post(
-            reverse('notes:post_create'),
+            reverse('notes:note_create'),
             data=form_data,
             follow=True
         )
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertRedirects(response, reverse(
-            'notes:profile', kwargs={'username': 'author'}
-        ))
         self.assertEqual(Note.objects.count(), tasks_count + 1)
         self.assertTrue(
             Note.objects.filter(
                 text=form_data['text'],
                 author=form_data['author'],
-                group=form_data['group'],
             ).exists()
         )
         fields = {
             'text': Note.objects.get(author=self.user_auth, id=2).text,
-            'author': self.post.author,
-            'group': self.post.group.id,
+            'author': self.note.author,
         }
         for field, expected_field in fields.items():
             with self.subTest(field=field):
                 self.assertEqual(form_data[field], expected_field)
-        self.assertIsInstance(self.post.image, ImageFieldFile)
+        self.assertIsInstance(self.note.image, ImageFieldFile)
 
     def test_edit(self):
-        """Валидная форма редактирует запись в Post."""
+        """Валидная форма редактирует запись в Note."""
 
         tasks_count = Note.objects.count()
         form_data = {
             'text': 'Тестовый текст',
             'author': self.user_auth,
-            'group': self.group.id,
             'image': self.uploaded.name
         }
         response = self.authorized_user.post(
-            reverse('notes:post_edit', kwargs={'post_id': self.post.pk}),
+            reverse('notes:note_edit', kwargs={'note_id': self.note.pk}),
             data=form_data,
             follow=True
         )
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
         self.assertRedirects(response, reverse(
-            'notes:post_detail', kwargs={'post_id': self.post.id}))
+            'notes:note_detail', kwargs={'note_id': self.note.id}))
         self.assertEqual(Note.objects.count(), tasks_count)
         self.assertTrue(
             Note.objects.filter(
                 text=form_data['text'],
                 author=form_data['author'],
-                group=form_data['group'],
-                image=self.post.image
-            ).exists()
-        )
-
-    def test_create_guest_user(self):
-        """Проверяет может-ли гость создавать посты
-        Зочем? Пусть будет."""
-
-        tasks_count = Note.objects.count()
-        form_data = {
-            'text': 'Тестовый текст гостя',
-        }
-        response = self.guest_user.post(
-            reverse('notes:post_create'),
-            data=form_data,
-            follow=True
-        )
-        self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        reverse_url = (self.reverse_login + '?next=' + self.reverse_create)
-        self.assertRedirects(response, reverse_url)
-        self.assertEqual(Note.objects.count(), tasks_count)
-        self.assertFalse(
-            Note.objects.filter(
-                text=form_data['text'],
-            ).exists()
-        )
-
-    def test_create_comment_guest_user(self):
-        """Проверяет может-ли гость комментировать
-        Зочем? Пусть будет."""
-
-        tasks_count = Comment.objects.count()
-        form_data = {
-            'text': 'Тестовый коммент гостя',
-        }
-        response = self.guest_user.post(
-            reverse('notes:add_comment', kwargs={'post_id': self.post.pk}),
-            data=form_data,
-            follow=True
-        )
-        self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        login = self.reverse_login
-        add_comment = self.reverse_add_comment
-        reverse_url = (login + '?next=' + add_comment)
-        self.assertRedirects(response, reverse_url)
-        self.assertEqual(Comment.objects.count(), tasks_count)
-        self.assertFalse(
-            Comment.objects.filter(
-                text=form_data['text'],
-            ).exists()
-        )
-
-    def test_create_comment_auth_user(self):
-        """Проверяет может-ли гость комментировать
-        Зочем? Пусть будет."""
-
-        tasks_count = Comment.objects.count()
-        form_data = {
-            'text': 'Тестовый коммент',
-        }
-        response = self.authorized_user.post(
-            reverse('notes:add_comment', kwargs={'post_id': self.post.pk}),
-            data=form_data,
-            follow=True
-        )
-        self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(Comment.objects.count(), tasks_count+1)
-        self.assertTrue(
-            Comment.objects.filter(
-                text=form_data['text'],
+                image=self.note.image
             ).exists()
         )

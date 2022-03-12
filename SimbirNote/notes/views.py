@@ -32,50 +32,57 @@ def save_notes(request):
 
 
 @login_required()
-def post_detail(request, post_id):
-    post = get_object_or_404(Note, id=post_id)
-    post_list = Note.objects.filter(author__username=post.author)
-    count_posts = post_list.count()
+def note_detail(request, note_id):
+    note = get_object_or_404(Note, id=note_id)
     context = {
-        'post': post,
-        'count_posts': count_posts,
+        'note': note,
     }
     return render(request, 'notes/note_detail.html', context)
 
 
 @login_required
-def post_create(request):
+def note_create(request):
     template = 'notes/create_note.html'
     client = request.user
     form = NoteForm(
         request.POST or None,
         files=request.FILES or None, )
     if form.is_valid():
-        post = form.save(commit=False)
-        post.author = client
-        post.save()
+        note = form.save(commit=False)
+        note.author = client
+        note.save()
         return redirect('notes:save_notes')
     return render(request, template, {'form': form})
 
 
 @login_required
-def post_edit(request, post_id):
+def note_edit(request, note_id):
     template = 'notes/create_note.html'
     client = request.user
-    post = get_object_or_404(Note, id=post_id)
-    if post.author != client:
-        return redirect('notes:post_detail', post_id=post_id)
+    note = get_object_or_404(Note, id=note_id)
+    if note.author != client:
+        return redirect('notes:note_detail', note_id=note_id)
     form = NoteForm(
         request.POST or None,
-        instance=post,
+        instance=note,
         files=request.FILES or None
     )
     if form.is_valid():
-        post.save()
-        return redirect('notes:post_detail', post_id=post_id)
+        note.save()
+        return redirect('notes:note_detail', note_id=note_id)
     context = {
         'form': form,
         'is_edit': True,
         'template': template
     }
     return render(request, template, context)
+
+
+@login_required
+def note_delete(request, note_id):
+    user = request.user
+    note = get_object_or_404(Note, id=note_id)
+    if note.author == user:
+        note.delete()
+        return redirect('notes:save_notes')
+    return redirect('account_login')

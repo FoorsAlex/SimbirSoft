@@ -7,7 +7,8 @@ app_name = 'notes'
 urlpatterns = [
     path('', views.index, name='index'),
     path('notes/save_notes/', views.save_notes, name='save_notes'),
-    path('notes/<int:post_id>/', views.post_detail, name='post_detail'),
-    path('create/', views.post_create, name='post_create'),
-    path('notes/<post_id>/edit/', views.post_edit, name='post_edit'),
+    path('notes/<int:note_id>/', views.note_detail, name='note_detail'),
+    path('create/', views.note_create, name='note_create'),
+    path('notes/<note_id>/edit/', views.note_edit, name='note_edit'),
+    path('notes/<note_id>/delete/', views.note_delete, name='note_delete')
 ]
