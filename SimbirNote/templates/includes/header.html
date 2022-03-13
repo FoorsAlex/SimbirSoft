@@ -12,9 +12,19 @@
                         class="nav-link link-light {% if view_name == 'notes:index' %}active{% endif %}"
                         href="{% url 'notes:index' %}"
                 >
-                    Главная
+                    На главную
                 </a>
             </li>
+            {% if user.is_authenticated %}
+             <li class="nav-item">
+                <a
+                        class="nav-link link-light {% if view_name == 'notes:save_notes' %}active{% endif %}"
+                        href="{% url 'notes:save_notes' %}"
+                >
+                    Список заметок
+                </a>
+            </li>
+            {% endif %}
             <li class="nav-item">
                 <a class="nav-link link-light {% if view_name == 'about:author' %} active {% endif %}"
                    href="{% url 'about:author' %}">Об авторе</a>
@@ -25,14 +35,14 @@
             </li>
             {% if request.user.is_authenticated %}
             <li class="nav-item">
-                <a class="nav-link link-light" href="{% url 'notes:note_create' %}">Новая запись</a>
+                <a class="nav-link link-light" href="{% url 'notes:note_create' %}">Добавить заметку</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link link-light" href="{% url 'account_logout' %}">Выйти</a>
             </li>
             {% else %}
             <li class="nav-item">
-                <a class="nav-link link-light" href="{% url 'account_login' %}">Войти</a>
+                <a class="nav-link link-light" href="{% url 'account_login' %}">Авторизация</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link link-light" href="{% url 'account_signup' %}">Регистрация</a>

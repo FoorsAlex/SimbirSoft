@@ -3,6 +3,7 @@
   Главная
 {% endblock %}
 {% block content %}
+<h1 style="color:DarkViolet">SimbirNote</h1>
 {% if request.user.is_authenticated %}
   Количество ваших заметок: {{ notes_count }}
 {% endif %}
