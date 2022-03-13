@@ -2,30 +2,30 @@
 
 
 
-Сервис позволяет пользователям добавлять свои заметки, удалять их, а также редактировать.
+Сервис позволяет пользователям добавлять свои заметки с картинками(или без них), удалять их, а также редактировать.
 При регистрации пользователь указывает свой email, который будет использоваться при регистрации.
-![foodgram-main](https://user-images.githubusercontent.com/74264747/130495494-1eb4c107-209a-40cd-a4ac-12f40762725b.jpg)
-![foodgram-main2](https://user-images.githubusercontent.com/74264747/130495522-0bf86788-1c17-4186-af86-a2c6853262ad.jpg)
 
-Зарегестрированные пользователи могут подписываться на авторов рецептов или добавлять рецепты в корзину, в избранное.
-Есть возможность фильтрации рецептов по тегам, поиск по началу названия ингредиента при добавлении или редактировании рецепта.
+![Без имени](https://user-images.githubusercontent.com/90108557/158039718-8b7e90db-4a9b-4a28-8b8a-5401a78673e2.png)
 
+Зарегистрированные пользователи могут создавать новые заметки.
 
-![recipe-detail](https://user-images.githubusercontent.com/74264747/130495561-d3193e9d-c759-4b00-8562-0f2ef4e37ce3.jpg)
+![Без имени1](https://user-images.githubusercontent.com/90108557/158039757-8f44169b-71fc-4d88-b1d6-239ad19f73ff.png)
+
+![Без имени2png](https://user-images.githubusercontent.com/90108557/158039765-90272093-138e-45be-aca7-5b67ed06b1c5.png)
+
 
 
 ## Запуск проекта локально
 - Склонировать проект и перейти в папку проекта
 
 ```bash
-git clone https://github.com/dangerousmonk/foodgram-project-react
-cd foodgram-project-react
+https://github.com/FoorsAlex/SimbirSoft.git
+cd SimbirNote/
 ```
-- Установить Python 3.8.3 в случае если он не установлен
 - Установить и активировать виртуальное окружение, или создать новый проект в PyCharm
 
 ```bash
-python3 -m venv venv
+python -m venv venv
 source venv\bin\activate
 ```
 
@@ -48,7 +48,7 @@ python manage.py createsuperuser
 - Запустить web-сервер на локальной машине:
 
 ```bash
-python manage.py runserver --settings=foodgram.settings-dev
+python manage.py runserver
 ```
 
 
@@ -57,11 +57,11 @@ python manage.py runserver --settings=foodgram.settings-dev
 - Установить Docker и получить образ
 
 ```
-docker pull dangerousmonk/foodgram-project-react:latest
+docker pull dangerousmonk/SimbirSoft:latest
 ```
 
 Проект можно развернуть используя контейнеризацию с помощью Docker  
-Параметры запуска описаны в `docker-compose.yml`.
+Параметры запуска описаны в `infra/docker-compose.yml`.
 
 При запуске создаются три контейнера:
 
@@ -103,4 +103,20 @@ docker-compose exec backend python manage.py collectstatic --noinput
 
 ```bash
 docker-compose exec backend python manage.py createsuperuser
+```
+## Возможные проблемы:
+При запуске с помощью Docker может не загружаться статика(очень много времени пытался понять в чём проблема, так и не разобрался).
+Чтобы вы точно смогли взглянуть на проект в его красивой оболочке, я добавил в SimbirSoft/SimbirNote/simbir_note/settings вот эти закомментированные строки:
+
+![image](https://user-images.githubusercontent.com/90108557/158039983-bec60c94-c869-469b-a656-e0f9d782a18d.png)
+
+Вам нужно их раскомментировать и закоментировать строки ниже, должно получиться вот так:
+
+![image](https://user-images.githubusercontent.com/90108557/158040024-1076329a-f06b-4982-96ee-6a4ad3bf4fbe.png)
+
+- После выполнить команды:
+```bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
 ```
