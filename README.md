@@ -13,8 +13,18 @@
 
 ![Без имени2png](https://user-images.githubusercontent.com/90108557/158039765-90272093-138e-45be-aca7-5b67ed06b1c5.png)
 
-
-
+##Описание архитектуры
+-В папке infra лежит docker-compose и nginx
+Все ниже указанные папки находятся в директории SimbirSoft
+-Приложение about служит для отображения статических страниц "Об авторе" "и Технологии"
+-Приложение accounts это кастомная система регистрации
+-В приложении core находятся контекстные процессоры: 
+1) year-подключается в footer, для отображения текущего года
+2) notes_count отображает количество постов пользователя на главной странице
+А также view функции для отображения кастомных страниц ошибок и user_filters, которые используются в шаблонах
+-Приложение notes работает с заметками
+-Папка simbir_note содержит головные urls и настройки проекта
+-Папка содержит все шаблоны, используемые в проекте
 ## Запуск проекта локально
 - Склонировать проект и перейти в папку проекта
 
@@ -34,6 +44,16 @@ source venv\bin\activate
 ```bash
 pip install -r requirements.txt
 ``` 
+- Изменить настрйки в SimbirSoft/SimbirNote/simbir_note/settings.py
+1) Раскомментировать строки 90-95
+2) Закомментировать строки 97-106
+Выглядеть это должно так:
+Было-
+![image](https://user-images.githubusercontent.com/90108557/158175851-81ce4734-3910-4367-9e75-ac5cff1a85df.png)
+
+Стало-
+![image](https://user-images.githubusercontent.com/90108557/158175915-cc05099c-8c58-441c-a390-d8927c59d594.png)
+
 - В папке с файлом manage.py выполнить команды:
 
 ```bash
@@ -45,78 +65,23 @@ python manage.py migrate
 ```bash
 python manage.py createsuperuser
 ```
+
 - Запустить web-сервер на локальной машине:
 
 ```bash
 python manage.py runserver
 ```
 
+## Инструкция по запуску проекта через докер
++ Открыть Ubuntu и Docker Desktop 
++ В Ubuntu перейти в директорию SimbirNote/infra
++ ``` docker-compose up --build```
++ ``` docker-compose exec web python manage.py makemigrations```
++ ``` docker-compose exec web python manage.py migrate```
++ ``` docker-compose exec web python manage.py runserver```
++ Проект будет открыт локально по адрессу http://127.0.0.1:8000/
 
-
-## Docker инструкции
-- Установить Docker и получить образ
-
-```
-docker pull dangerousmonk/SimbirSoft:latest
-```
-
-Проект можно развернуть используя контейнеризацию с помощью Docker  
-Параметры запуска описаны в `infra/docker-compose.yml`.
-
-При запуске создаются три контейнера:
-
- - контейнер базы данных **db**
- - контейнер приложения **backend**
- - контейнер web-сервера **nginx**
-
-Для развертывания контейнеров необходимо:
-
-
-- Создать и сохранить переменные окружения в **.env** файл, образец ниже
-```bash
-DB_ENGINE=django.db.backends.postgresql
-DB_NAME=foodgram_exmpl
-POSTGRES_USER=user
-POSTGRES_PASSWORD=12345
-POSTGRES_DB=yamdb #имя БД которое возьмет образ postgres
-DB_HOST=db
-DB_PORT=5432
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=someuser@gmail.com
-EMAIL_HOST_PASSWORD=secretpassword
-```
-
-- Запустить docker-compose
-
-```bash
-docker-compose up
-```
-- Выполнить миграции и подключить статику
-
-```bash
-docker-compose exec backend python manage.py makemigrations
-docker-compose exec backend python manage.py migrate
-docker-compose exec backend python manage.py collectstatic --noinput
-```
-- Создать superuser
-
-```bash
-docker-compose exec backend python manage.py createsuperuser
-```
 ## Возможные проблемы:
 При запуске с помощью Docker может не загружаться статика(очень много времени пытался понять в чём проблема, так и не разобрался).
-Чтобы вы точно смогли взглянуть на проект в его красивой оболочке, я добавил в SimbirSoft/SimbirNote/simbir_note/settings вот эти закомментированные строки:
+Чтобы вы точно смогли взглянуть на проект в его красивой оболочке, запустите проект локально по инструкции описанной выше.
 
-![image](https://user-images.githubusercontent.com/90108557/158039983-bec60c94-c869-469b-a656-e0f9d782a18d.png)
-
-Вам нужно их раскомментировать и закоментировать строки ниже, должно получиться вот так:
-
-![image](https://user-images.githubusercontent.com/90108557/158040024-1076329a-f06b-4982-96ee-6a4ad3bf4fbe.png)
-
-- После выполнить команды:
-```bash
-python manage.py makemigrations
-python manage.py migrate
-python manage.py runserver
-```
