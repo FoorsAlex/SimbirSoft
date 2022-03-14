@@ -32,11 +32,11 @@
 https://github.com/FoorsAlex/SimbirSoft.git
 cd SimbirNote/
 ```
-- Установить и активировать виртуальное окружение, или создать новый проект в PyCharm
+- Установить и активировать виртуальное окружение
 
 ```bash
 python -m venv venv
-source venv\bin\activate
+source source venv/Scripts/activate
 ```
 
 - Установить зависимости из файла **requirements.txt**
